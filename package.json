@@ -1,0 +1,27 @@
+{
+  "name": "script-farming",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Generator script farming - paste banyak ide konten sekaligus, jadi halaman/file HTML siap copy ke Google Docs",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "next": "15.1.8",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.6",
+    "@types/react": "19.0.1",
+    "@types/react-dom": "19.0.1",
+    "autoprefixer": "10.4.20",
+    "postcss": "8.4.49",
+    "tailwindcss": "3.4.17",
+    "typescript": "5.7.2"
+  }
+}

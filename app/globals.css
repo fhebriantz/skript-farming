@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: #0d0f14;
+  color: #e6e9f0;
+}
+
+.kartu {
+  @apply rounded-xl border border-line bg-panel;
+}
+.tombol {
+  @apply inline-flex items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-slate-200 transition hover:border-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40;
+}
+.tombol-utama {
+  @apply inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+/* Pratinjau dokumen: ukuran font sama persis dengan hasil export (14 / 12 / 11). */
+.pratinjau {
+  background: #fff;
+  color: #000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11pt;
+}
+.pratinjau table {
+  width: 100%;
+}

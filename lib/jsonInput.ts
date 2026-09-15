@@ -11,7 +11,27 @@ export type HasilJson = {
   tanggal?: string;
 };
 
-const str = (v: unknown): string => (typeof v === "string" ? v.trim() : typeof v === "number" ? String(v) : "");
+/**
+ * Model chat sering menyisipkan penanda sitasi seperti "([India Today][1])" dan tautan
+ * markdown "[teks](url)". Dibersihkan supaya tidak ikut tercetak mentah di dokumen.
+ */
+function bersihkanTeks(v: string): string {
+  return v
+    .replace(/\s*\(\[[^\]]*\]\[\d+\]\)/g, "") // ([Nama][1])
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, "$1") // [teks](url) -> teks
+    .replace(/\s*\[\d+\](?=[\s.,;:)]|$)/g, "") // sisa penanda [1]
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+/** Khusus field tautan: yang diambil URL-nya, bukan teksnya. */
+function bersihkanTautan(v: string): string {
+  const md = v.trim().match(/^\[[^\]]*\]\((https?:[^)\s]+)\)$/);
+  return md ? md[1] : bersihkanTeks(v);
+}
+
+const str = (v: unknown): string =>
+  typeof v === "string" ? bersihkanTeks(v) : typeof v === "number" ? String(v) : "";
 
 const angka = (v: unknown): number => {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(",", "."));
@@ -80,7 +100,7 @@ function keIde(m: any, urutan: number): Idea {
     judul,
     headline: str(m?.headline) || judul,
     tool: str(m?.tool),
-    linkResmi: str(m?.linkResmi ?? m?.link ?? m?.url),
+    linkResmi: bersihkanTautan(String(m?.linkResmi ?? m?.link ?? m?.url ?? "")),
     harga: str(m?.harga ?? m?.price),
     slot: str(m?.slot ?? m?.minggu ?? m?.week),
     contentGap: str(m?.contentGap ?? m?.content_gap),
@@ -102,14 +122,56 @@ function keIde(m: any, urutan: number): Idea {
   };
 }
 
-/** Kembalikan null kalau teks bukan JSON yang dikenali, supaya pemanggil bisa jatuh ke mode teks. */
+/**
+ * Ambil satu blok JSON utuh dari dalam teks.
+ * Model chat sering menambahkan kalimat pembuka, pembungkus ```json, atau daftar referensi
+ * di bawah JSON. Blok dicari dengan menghitung kurung, dan tanda kurung di dalam string diabaikan.
+ */
+function petikJson(teks: string): string | null {
+  const t = teks.replace(/^\s*```(?:json)?\s*/i, "").replace(/```\s*$/, "");
+  const mulai = Math.min(
+    ...[t.indexOf("{"), t.indexOf("[")].filter((i) => i >= 0).concat(Infinity)
+  );
+  if (!Number.isFinite(mulai)) return null;
+
+  const buka = t[mulai];
+  const tutup = buka === "{" ? "}" : "]";
+  let dalam = 0;
+  let diString = false;
+  let escape = false;
+
+  for (let i = mulai; i < t.length; i++) {
+    const c = t[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (c === "\\") {
+      if (diString) escape = true;
+      continue;
+    }
+    if (c === '"') {
+      diString = !diString;
+      continue;
+    }
+    if (diString) continue;
+    if (c === buka) dalam++;
+    else if (c === tutup) {
+      dalam--;
+      if (dalam === 0) return t.slice(mulai, i + 1);
+    }
+  }
+  return null;
+}
+
+/** Kembalikan null kalau teks bukan JSON yang dikenali. */
 export function cobaBacaJson(teks: string): HasilJson | null {
-  const t = teks.trim();
-  if (!t.startsWith("{") && !t.startsWith("[")) return null;
+  const potongan = petikJson(teks);
+  if (!potongan) return null;
 
   let data: any;
   try {
-    data = JSON.parse(t);
+    data = JSON.parse(potongan);
   } catch {
     return null;
   }

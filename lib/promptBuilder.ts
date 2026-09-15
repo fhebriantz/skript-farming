@@ -1,10 +1,10 @@
 /** Menyusun prompt generator ide konten. Semuanya string, tanpa panggilan jaringan. */
 
-export const TEMA_DEFAULT = "AI Tools + Tech Hacks + Productivity + Lifehacks";
+export const NICHE_DEFAULT = "AI Tools + Tech Hacks + Productivity + Lifehacks";
 
 /** Niche yang paling banyak dipakai content creator Indonesia. */
-export const TEMA_PILIHAN: string[] = [
-  TEMA_DEFAULT,
+export const NICHE_PILIHAN: string[] = [
+  NICHE_DEFAULT,
   "Bisnis, Jualan Online & UMKM",
   "Keuangan, Investasi & Literasi Finansial",
   "Karier, Dunia Kerja & Interview",
@@ -225,16 +225,16 @@ Apakah orang kemungkinan mengirim ke orang lain? YA/TIDAK
 Semua teks memakai Bahasa Indonesia. Jangan pakai emoji. Pakai panah ASCII "->".`;
 }
 
-export function buatPrompt(opts: { tema: string; format: FormatOutput; jumlah?: number }): string {
+export function buatPrompt(opts: { niche: string; format: FormatOutput; jumlah?: number }): string {
   const jumlah = opts.jumlah && opts.jumlah > 0 ? opts.jumlah : 12;
   const perMinggu = Math.round(jumlah / 3);
-  const tema = opts.tema.trim() || TEMA_DEFAULT;
+  const niche = opts.niche.trim() || NICHE_DEFAULT;
 
   return `Kamu adalah Viral Content Strategist, Trend Hunter, Creative Director, dan Short-Form Video Producer khusus untuk akun TikTok, Instagram Reels, dan YouTube Shorts bertema:
 
-${tema}
+${niche}
 
-Target utama: audience Indonesia, dari kalangan yang paling relevan dengan tema di atas.
+Target utama: audience Indonesia, dari kalangan yang paling relevan dengan niche di atas.
 
 Tugasmu bukan sekadar memberikan ide. Tugasmu adalah menemukan PELUANG KONTEN yang belum terlalu banyak dibuat oleh creator Indonesia, lalu mengubah setiap peluang menjadi paket video 18-20 detik yang siap direkam.
 
@@ -248,7 +248,7 @@ Saya tidak mencari konten yang sekadar informatif. Saya mencari konten yang memb
 
 ## 2. CARI CONTENT GAP INDONESIA
 
-Sebelum menentukan ide, riset dulu konten bertema ini yang sedang muncul di TikTok Indonesia, Instagram Reels Indonesia, YouTube Shorts Indonesia, Google Search, Reddit, X, forum dan komunitas terkait, serta sumber resmi di bidang ini.
+Sebelum menentukan ide, riset dulu konten di niche ini yang sedang muncul di TikTok Indonesia, Instagram Reels Indonesia, YouTube Shorts Indonesia, Google Search, Reddit, X, forum dan komunitas terkait, serta sumber resmi di bidang ini.
 
 Tujuan riset: jangan meniru konten yang sudah terlalu sering dibuat creator Indonesia.
 
@@ -292,7 +292,7 @@ Pastikan tool, produk, tempat, atau metode yang disebut masih ada dan masih bisa
 
 ## 8. VARIASIKAN
 
-Jangan membuat ${jumlah} ide yang semuanya memakai satu tool, satu alat, atau satu pendekatan yang sama. Buat sub-topik yang berbeda-beda di dalam tema.
+Jangan membuat ${jumlah} ide yang semuanya memakai satu tool, satu alat, atau satu pendekatan yang sama. Buat sub-topik yang berbeda-beda di dalam niche ini.
 
 ## 9. SETIAP IDE HARUS PUNYA HOOK 3 DETIK
 
@@ -343,7 +343,7 @@ Jika sebuah ide mendapatkan terlalu banyak jawaban TIDAK, ganti ide tersebut seb
 
 ## 17. CARA BERPIKIR
 
-Jangan bertanya "apa yang sedang viral?". Tanyakan "masalah apa yang sedang dialami banyak orang Indonesia di bidang ini, yang solusinya belum banyak mereka lihat?".
+Jangan bertanya "apa yang sedang viral?". Tanyakan "masalah apa yang sedang dialami banyak orang Indonesia di niche ini, yang solusinya belum banyak mereka lihat?".
 
 Jangan bertanya "apa yang keren?". Tanyakan "apa yang ketika ditunjukkan di layar akan menghasilkan perubahan yang langsung terlihat?".
 

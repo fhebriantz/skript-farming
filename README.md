@@ -21,9 +21,9 @@ Situsnya terbuka untuk siapa saja.
 
 ### Buat Prompt
 
-Pilih tema dari 16 niche yang umum dipakai content creator Indonesia, atau pilih
-**Tulis sendiri** lalu ketik tema sendiri dipisahkan koma (`Skincare, Parenting, Investasi`).
-Default temanya `AI Tools + Tech Hacks + Productivity + Lifehacks`.
+Pilih niche dari 16 pilihan yang umum dipakai content creator Indonesia, atau pilih
+**Tulis sendiri** lalu ketik niche sendiri dipisahkan koma (`Skincare, Parenting, Investasi`).
+Default-nya `AI Tools + Tech Hacks + Productivity + Lifehacks`.
 
 Format output ada dua:
 
@@ -110,7 +110,7 @@ app/
 └── page.tsx        satu halaman: paste JSON -> daftar ide -> detail ide
 lib/
 ├── jsonInput.ts    parser JSON
-├── promptBuilder.ts  penyusun prompt + daftar tema
+├── promptBuilder.ts  penyusun prompt + daftar niche
 ├── docHtml.ts      render HTML 14/12/11 siap Google Docs
 ├── export.ts       unduh file, ZIP, copy rich text
 └── types.ts

@@ -7,6 +7,13 @@ import { cobaBacaJson } from "@/lib/jsonInput";
 import { bungkus, isiIde, isiIndex, namaFile } from "@/lib/docHtml";
 import { copyKaya, unduhFile, unduhIde, unduhZipGrup } from "@/lib/export";
 import { capWaktu, type Group, type Idea } from "@/lib/types";
+import {
+  TEMA_DEFAULT,
+  TEMA_PILIHAN,
+  TULIS_SENDIRI,
+  buatPrompt,
+  type FormatOutput,
+} from "@/lib/promptBuilder";
 
 
 const CONTOH_JSON = `{
@@ -42,6 +49,10 @@ const CONTOH_JSON = `{
 export default function Halaman() {
   const [teks, setTeks] = useState("");
   const [lihatFormat, setLihatFormat] = useState(false);
+  const [tab, setTab] = useState<"paste" | "prompt">("paste");
+  const [temaPilih, setTemaPilih] = useState(TEMA_DEFAULT);
+  const [temaSendiri, setTemaSendiri] = useState("");
+  const [formatOut, setFormatOut] = useState<FormatOutput>("json");
   const [galat, setGalat] = useState("");
   const [status, setStatus] = useState("");
 
@@ -50,6 +61,20 @@ export default function Halaman() {
   const [pilih, setPilih] = useState<Idea | null>(null);
 
   const json = useMemo(() => cobaBacaJson(teks), [teks]);
+
+  const temaFinal =
+    temaPilih === TULIS_SENDIRI
+      ? temaSendiri
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean)
+          .join(" + ")
+      : temaPilih;
+
+  const prompt = useMemo(
+    () => buatPrompt({ tema: temaFinal || TEMA_DEFAULT, format: formatOut }),
+    [temaFinal, formatOut]
+  );
 
   function lapor(pesan: string) {
     setStatus(pesan);
@@ -230,6 +255,119 @@ export default function Halaman() {
       <Bilah />
 
       <div className="mx-auto max-w-3xl">
+        <div className="mb-4 inline-flex rounded-lg border border-line bg-[#0f1219] p-1">
+          {([["paste", "Paste JSON"], ["prompt", "Buat Prompt"]] as ["paste" | "prompt", string][]).map(
+            ([t, label]) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${
+                  tab === t ? "bg-accent text-white" : "text-muted hover:text-slate-200"
+                }`}
+              >
+                {label}
+              </button>
+            )
+          )}
+        </div>
+
+        {tab === "prompt" ? (
+          <section className="kartu p-5">
+            <h1 className="text-lg font-semibold text-white">Buat prompt generator ide</h1>
+            <p className="mt-1 text-sm text-muted">
+              Pilih tema dan format, lalu copy promptnya. Jalankan di chat AI mana pun, lalu paste hasilnya di tab
+              Paste JSON.
+            </p>
+
+            <label className="mt-4 block text-sm">
+              <span className="mb-1 block text-muted">Tema konten</span>
+              <select
+                value={temaPilih}
+                onChange={(e) => setTemaPilih(e.target.value)}
+                className="w-full rounded-lg border border-line bg-[#0f1219] px-3 py-2 text-slate-200 outline-none focus:border-accent"
+              >
+                {TEMA_PILIHAN.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+                <option value={TULIS_SENDIRI}>{TULIS_SENDIRI}...</option>
+              </select>
+            </label>
+
+            {temaPilih === TULIS_SENDIRI && (
+              <label className="mt-3 block text-sm">
+                <span className="mb-1 block text-muted">Tema sendiri, pisahkan dengan koma</span>
+                <input
+                  value={temaSendiri}
+                  onChange={(e) => setTemaSendiri(e.target.value)}
+                  placeholder="Skincare, Parenting, Investasi"
+                  className="w-full rounded-lg border border-line bg-[#0f1219] px-3 py-2 text-slate-200 outline-none placeholder:text-slate-600 focus:border-accent"
+                />
+                <span className="mt-1 block text-xs text-muted">
+                  Hasil: <span className="text-slate-300">{temaFinal || "(masih kosong)"}</span>
+                </span>
+              </label>
+            )}
+
+            <div className="mt-4">
+              <span className="mb-1 block text-sm text-muted">Format output</span>
+              <div className="inline-flex rounded-lg border border-line bg-[#0f1219] p-1">
+                {([["json", "JSON"], ["teks", "Teks"]] as [FormatOutput, string][]).map(([f, label]) => (
+                  <button
+                    key={f}
+                    onClick={() => setFormatOut(f)}
+                    className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${
+                      formatOut === f ? "bg-accent text-white" : "text-muted hover:text-slate-200"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-muted">
+                {formatOut === "json"
+                  ? "JSON bisa langsung dipaste ke tab Paste JSON untuk jadi halaman."
+                  : "Teks untuk dibaca manual. Tidak bisa dipaste ke tab Paste JSON."}
+              </p>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(prompt);
+                    lapor("Prompt tersalin. Paste ke chat AI.");
+                  } catch {
+                    lapor("Gagal menyalin.");
+                  }
+                }}
+                className="tombol-utama"
+              >
+                Copy prompt
+              </button>
+              <button
+                onClick={() =>
+                  unduhFile(`prompt-${formatOut}-${capWaktu()}.md`, prompt, "text/markdown;charset=utf-8")
+                }
+                className="tombol"
+              >
+                Unduh .md
+              </button>
+              <span className="self-center text-xs text-muted">
+                {prompt.length.toLocaleString("id-ID")} karakter
+              </span>
+            </div>
+
+            {status && (
+              <p className="mt-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent">{status}</p>
+            )}
+
+            <pre className="mt-4 max-h-[420px] overflow-auto rounded-lg border border-line bg-[#0f1219] p-4 text-[11px] leading-relaxed text-slate-300">
+              {prompt}
+            </pre>
+          </section>
+        ) : (
         <section className="kartu p-5">
           <h1 className="text-lg font-semibold text-white">Paste JSON ide konten</h1>
           <p className="mt-1 text-sm text-muted">
@@ -270,6 +408,7 @@ export default function Halaman() {
 
           {galat && <p className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">{galat}</p>}
         </section>
+        )}
       </div>
     </>
   );

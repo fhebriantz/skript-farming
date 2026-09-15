@@ -12,9 +12,29 @@ Situsnya terbuka untuk siapa saja.
 
 ---
 
-## Input
+## Dua tab
 
-Satu-satunya input adalah JSON. Bentuk yang diterima:
+| Tab | Fungsi |
+|---|---|
+| **Paste JSON** | Menempel JSON ide konten, jadi halaman dan file HTML |
+| **Buat Prompt** | Menyusun prompt generator ide untuk dijalankan di chat AI mana pun |
+
+### Buat Prompt
+
+Pilih tema dari 16 niche yang umum dipakai content creator Indonesia, atau pilih
+**Tulis sendiri** lalu ketik tema sendiri dipisahkan koma (`Skincare, Parenting, Investasi`).
+Default temanya `AI Tools + Tech Hacks + Productivity + Lifehacks`.
+
+Format output ada dua:
+
+- **JSON** - hasilnya bisa langsung dipaste ke tab Paste JSON
+- **Teks** - format markdown per ide, untuk dibaca manual
+
+Prompt disusun di browser, bisa di-copy atau diunduh sebagai `.md`.
+
+### Paste JSON
+
+Bentuk yang diterima:
 
 ```json
 {
@@ -29,8 +49,7 @@ saat generate, jadi tidak ada yang perlu diisi manual.
 
 Selain kunci `ide`, diterima juga `ideas`, `konten`, `items`, atau array telanjang `[ ... ]`.
 
-- Contoh JSON valid: `contoh/format-12-ide.json`
-- Prompt siap pakai untuk menghasilkan JSON itu: `contoh/prompt-generator.md`
+Contoh JSON valid ada di `contoh/format-12-ide.json`.
 
 Field per ide: `judul`, `headline`, `tool`, `linkResmi`, `harga`, `slot`, `contentGap`,
 `targetAudience`, `masalah`, `caraKerja`, `wowMoment`, `hook`, `gerakanHook`, `script[]`,
@@ -91,10 +110,10 @@ app/
 └── page.tsx        satu halaman: paste JSON -> daftar ide -> detail ide
 lib/
 ├── jsonInput.ts    parser JSON
+├── promptBuilder.ts  penyusun prompt + daftar tema
 ├── docHtml.ts      render HTML 14/12/11 siap Google Docs
 ├── export.ts       unduh file, ZIP, copy rich text
 └── types.ts
 contoh/
-├── prompt-generator.md   prompt siap pakai, output JSON
 └── format-12-ide.json    contoh JSON valid
 ```

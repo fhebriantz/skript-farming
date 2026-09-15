@@ -120,7 +120,7 @@ export function halamanIde(ide: Idea, total: number): string {
 export function isiIndex(g: Group): string {
   const out: string[] = [];
   out.push(h1(`${g.nama}`, true));
-  out.push(quote([`Folder: ${g.tanggal}`, `${g.ideas.length} ide konten, diurutkan dari skor terbesar ke terkecil.`]));
+  out.push(quote([`Folder: ${g.folder}`, `${g.ideas.length} ide konten, diurutkan dari skor terbesar ke terkecil.`]));
   out.push(hr());
   out.push(h2("Ranking Lengkap"));
   out.push(

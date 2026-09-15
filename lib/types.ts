@@ -55,7 +55,8 @@ export type Idea = {
 
 export type Group = {
   id: string;
-  tanggal: string; // YYYY-MM-DD -> dipakai sebagai nama folder
+  /** Cap waktu saat digenerate, format YYYY-MM-DD-HHmm. Dipakai sebagai nama folder dan nama berkas ZIP. */
+  folder: string;
   nama: string;
   createdAt: number;
   sourceText: string;
@@ -88,4 +89,10 @@ export function slugify(t: string): string {
       .replace(/^-+|-+$/g, "")
       .slice(0, 60) || "ide"
   );
+}
+
+/** Cap waktu lokal untuk penamaan folder dan berkas ZIP, mis. "2026-09-15-1407". */
+export function capWaktu(d = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
 }

@@ -6,13 +6,11 @@ import { Pratinjau } from "@/components/Pratinjau";
 import { cobaBacaJson } from "@/lib/jsonInput";
 import { bungkus, isiIde, isiIndex, namaFile } from "@/lib/docHtml";
 import { copyKaya, unduhFile, unduhIde, unduhZipGrup } from "@/lib/export";
-import type { Group, Idea } from "@/lib/types";
+import { capWaktu, type Group, type Idea } from "@/lib/types";
 
-const hariIni = () => new Date().toISOString().slice(0, 10);
 
 const CONTOH_JSON = `{
   "grup": "Batch Konten AI",
-  "tanggal": "${hariIni()}",
   "ide": [
     {
       "judul": "", "headline": "", "tool": "", "linkResmi": "", "harga": "",
@@ -43,8 +41,6 @@ const CONTOH_JSON = `{
 
 export default function Halaman() {
   const [teks, setTeks] = useState("");
-  const [nama, setNama] = useState("");
-  const [tanggal, setTanggal] = useState(hariIni());
   const [lihatFormat, setLihatFormat] = useState(false);
   const [galat, setGalat] = useState("");
   const [status, setStatus] = useState("");
@@ -74,8 +70,8 @@ export default function Halaman() {
     const ideas = urutkan(json.ideas);
     setGrup({
       id: "memori",
-      tanggal: json.tanggal || tanggal,
-      nama: nama.trim() || json.nama || `${ideas.length} ide`,
+      folder: capWaktu(),
+      nama: json.nama || `${ideas.length} ide konten`,
       createdAt: Date.now(),
       sourceText: teks,
       ideas,
@@ -172,7 +168,7 @@ export default function Halaman() {
 
         <div className="kartu mb-4 flex flex-wrap items-center justify-between gap-4 p-5">
           <div>
-            <p className="font-mono text-xs uppercase tracking-wider text-muted">folder {grup.tanggal}</p>
+            <p className="font-mono text-xs uppercase tracking-wider text-muted">{grup.folder}.zip</p>
             <h1 className="text-xl font-semibold text-white">{grup.nama}</h1>
           </div>
           <dl className="flex flex-wrap gap-6 text-sm">
@@ -266,27 +262,6 @@ export default function Halaman() {
               {json ? `JSON terbaca - ${json.ideas.length} ide` : "Belum ada JSON yang terbaca"}
             </span>
             <span className="text-muted">{teks.length.toLocaleString("id-ID")} karakter</span>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="text-sm">
-              <span className="mb-1 block text-muted">Nama grup</span>
-              <input
-                value={nama}
-                onChange={(e) => setNama(e.target.value)}
-                placeholder="Batch Minggu 1"
-                className="w-full rounded-lg border border-line bg-[#0f1219] px-3 py-2 text-slate-200 outline-none focus:border-accent"
-              />
-            </label>
-            <label className="text-sm">
-              <span className="mb-1 block text-muted">Folder tanggal</span>
-              <input
-                type="date"
-                value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
-                className="w-full rounded-lg border border-line bg-[#0f1219] px-3 py-2 text-slate-200 outline-none focus:border-accent"
-              />
-            </label>
           </div>
 
           <button onClick={generate} disabled={!json} className="tombol-utama mt-5">

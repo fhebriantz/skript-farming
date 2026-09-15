@@ -22,7 +22,7 @@ export function unduhIde(ide: Idea, total: number) {
 /** Satu ZIP berisi folder tanggal + semua halaman ide + index. */
 export async function unduhZipGrup(g: Group) {
   const zip = new JSZip();
-  const folder = zip.folder(g.tanggal)!;
+  const folder = zip.folder(g.folder)!;
   folder.file("#0-INDEX.html", bungkus(`${g.nama} - Index`, isiIndex(g)));
   g.ideas.forEach((i) => folder.file(namaFile(i), halamanIde(i, g.ideas.length)));
   folder.file(
@@ -39,7 +39,7 @@ export async function unduhZipGrup(g: Group) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${g.tanggal}-${g.nama.replace(/[^\w-]+/g, "-").toLowerCase()}.zip`;
+  a.download = `${g.folder}.zip`;
   document.body.appendChild(a);
   a.click();
   a.remove();

@@ -19,10 +19,13 @@ Satu-satunya input adalah JSON. Bentuk yang diterima:
 ```json
 {
   "grup": "Batch Konten AI",
-  "tanggal": "2026-09-15",
   "ide": [ { "judul": "...", "tool": "...", "hook": "..." } ]
 }
 ```
+
+`grup` opsional, dipakai sebagai judul di dokumen index. Kalau dikosongkan, dipakai
+`"12 ide konten"`. Nama folder dan nama berkas ZIP dibuat otomatis dari tanggal dan jam
+saat generate, jadi tidak ada yang perlu diisi manual.
 
 Selain kunci `ide`, diterima juga `ideas`, `konten`, `items`, atau array telanjang `[ ... ]`.
 
@@ -41,10 +44,11 @@ Ide diurutkan otomatis dari skor terbesar ke terkecil lalu dinomori ulang `#1` s
 
 ## Export
 
-Tombol **Unduh ZIP** menghasilkan struktur folder yang sebenarnya:
+Tombol **Unduh ZIP** menghasilkan struktur folder yang sebenarnya. Nama berkasnya
+`YYYY-MM-DD-HHmm.zip`, mengikuti tanggal dan jam saat digenerate:
 
 ```
-2026-09-15/
+2026-09-15-1407/
 ├── #0-INDEX.html
 ├── #1-judul-ide.html
 ├── #2-judul-ide.html

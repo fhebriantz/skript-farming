@@ -9,16 +9,19 @@
 body {
   background: #0d0f14;
   color: #e6e9f0;
+  -webkit-text-size-adjust: 100%;
 }
 
 .kartu {
   @apply rounded-xl border border-line bg-panel;
 }
+
+/* min-h 44px: ukuran sentuh nyaman di layar sentuh. */
 .tombol {
-  @apply inline-flex items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-slate-200 transition hover:border-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-sm text-slate-200 transition hover:border-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-40;
 }
 .tombol-utama {
-  @apply inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40;
 }
 
 /* Pratinjau dokumen: ukuran font sama persis dengan hasil export (14 / 12 / 11). */
@@ -30,4 +33,20 @@ body {
 }
 .pratinjau table {
   width: 100%;
+}
+
+/* Di layar sempit tabel dibiarkan melebar lalu di-scroll, lebih terbaca daripada dipaksa muat. */
+@media (max-width: 640px) {
+  .pratinjau table {
+    min-width: 460px;
+  }
+}
+
+/* iOS memperbesar halaman kalau field yang difokus punya font di bawah 16px. */
+@media (max-width: 640px) {
+  textarea,
+  input,
+  select {
+    font-size: 16px !important;
+  }
 }

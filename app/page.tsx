@@ -126,8 +126,12 @@ export default function Halaman() {
               <button onClick={() => setPilih(null)} className="tombol">
                 Kembali ke daftar
               </button>
-              <button onClick={() => unduhIde(pilih, grup.ideas.length)} className="tombol">
-                Unduh {namaFile(pilih)}
+              <button
+                onClick={() => unduhIde(pilih, grup.ideas.length)}
+                title={`Unduh ${namaFile(pilih)}`}
+                className="tombol"
+              >
+                Unduh HTML
               </button>
               <button
                 onClick={async () => lapor((await copyKaya(html)) ? "Tersalin. Paste ke Google Docs." : "Gagal menyalin.")}
@@ -140,17 +144,19 @@ export default function Halaman() {
         />
         {status && <p className="mb-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent">{status}</p>}
 
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 grid grid-cols-2 gap-2">
           {sebelum ? (
-            <button onClick={() => setPilih(sebelum)} className="tombol">
-              &larr; #{sebelum.rank} {sebelum.judul.slice(0, 28)}
+            <button onClick={() => setPilih(sebelum)} className="tombol min-w-0 !justify-start">
+              <span className="shrink-0">&larr; #{sebelum.rank}</span>
+              <span className="truncate">{sebelum.judul}</span>
             </button>
           ) : (
             <span />
           )}
           {sesudah ? (
-            <button onClick={() => setPilih(sesudah)} className="tombol">
-              #{sesudah.rank} {sesudah.judul.slice(0, 28)} &rarr;
+            <button onClick={() => setPilih(sesudah)} className="tombol col-start-2 min-w-0 !justify-end">
+              <span className="truncate">{sesudah.judul}</span>
+              <span className="shrink-0">#{sesudah.rank} &rarr;</span>
             </button>
           ) : (
             <span />
@@ -191,17 +197,14 @@ export default function Halaman() {
           }
         />
 
-        <div className="kartu mb-4 flex flex-wrap items-center justify-between gap-4 p-5">
-          <div>
-            <p className="font-mono text-xs uppercase tracking-wider text-muted">{grup.folder}.zip</p>
-            <h1 className="text-xl font-semibold text-white">{grup.nama}</h1>
+        <div className="kartu mb-4 flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
+          <div className="min-w-0">
+            <p className="truncate font-mono text-xs uppercase tracking-wider text-muted">{grup.folder}.zip</p>
+            <h1 className="truncate text-lg font-semibold text-white sm:text-xl">{grup.nama}</h1>
           </div>
-          <dl className="flex flex-wrap gap-6 text-sm">
-            <div>
-              <dt className="text-muted">Ide</dt>
-              <dd className="font-semibold text-white">{grup.ideas.length}</dd>
-            </div>
-          </dl>
+          <span className="shrink-0 rounded-lg bg-white/5 px-3 py-1.5 text-sm text-slate-300">
+            {grup.ideas.length} ide
+          </span>
         </div>
 
         <p className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
@@ -219,7 +222,7 @@ export default function Halaman() {
                 <button
                   key={i.id}
                   onClick={() => setPilih(i)}
-                  className="flex w-full items-center gap-4 rounded-lg border border-line bg-panel p-4 text-left transition hover:border-accent"
+                  className="flex w-full items-center gap-3 rounded-lg border border-line bg-panel p-3 text-left transition hover:border-accent sm:gap-4 sm:p-4"
                 >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/5 text-sm font-bold text-accent">
                     {i.rank}
@@ -272,7 +275,7 @@ export default function Halaman() {
         </div>
 
         {tab === "prompt" ? (
-          <section className="kartu p-5">
+          <section className="kartu p-4 sm:p-5">
             <h1 className="text-lg font-semibold text-white">Buat prompt generator ide</h1>
             <p className="mt-1 text-sm text-muted">
               Pilih niche dan format, lalu copy promptnya. Jalankan di chat AI mana pun, lalu paste hasilnya di tab
@@ -332,7 +335,7 @@ export default function Halaman() {
               </p>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-5 flex flex-wrap items-center gap-2">
               <button
                 onClick={async () => {
                   try {
@@ -342,7 +345,7 @@ export default function Halaman() {
                     lapor("Gagal menyalin.");
                   }
                 }}
-                className="tombol-utama"
+                className="tombol-utama flex-1 sm:flex-none"
               >
                 Copy prompt
               </button>
@@ -350,7 +353,7 @@ export default function Halaman() {
                 onClick={() =>
                   unduhFile(`prompt-${formatOut}-${capWaktu()}.md`, prompt, "text/markdown;charset=utf-8")
                 }
-                className="tombol"
+                className="tombol flex-1 sm:flex-none"
               >
                 Unduh .md
               </button>
@@ -363,12 +366,12 @@ export default function Halaman() {
               <p className="mt-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent">{status}</p>
             )}
 
-            <pre className="mt-4 max-h-[420px] overflow-auto rounded-lg border border-line bg-[#0f1219] p-4 text-[11px] leading-relaxed text-slate-300">
+            <pre className="mt-4 max-h-[300px] overflow-auto rounded-lg border border-line bg-[#0f1219] p-3 text-[11px] leading-relaxed text-slate-300 sm:max-h-[420px] sm:p-4">
               {prompt}
             </pre>
           </section>
         ) : (
-        <section className="kartu p-5">
+        <section className="kartu p-4 sm:p-5">
           <h1 className="text-lg font-semibold text-white">Paste JSON ide konten</h1>
           <p className="mt-1 text-sm text-muted">
             Semua field dipetakan langsung dan diproses{" "}
@@ -379,7 +382,7 @@ export default function Halaman() {
             {lihatFormat ? "Sembunyikan format" : "Lihat format JSON"}
           </button>
           {lihatFormat && (
-            <pre className="mt-3 max-h-64 overflow-auto rounded-lg border border-line bg-[#0f1219] p-3 text-[11px] leading-relaxed text-slate-300">
+            <pre className="mt-3 max-h-52 overflow-auto rounded-lg border border-line bg-[#0f1219] p-3 text-[11px] leading-relaxed text-slate-300 sm:max-h-64">
               {CONTOH_JSON}
             </pre>
           )}
@@ -388,7 +391,7 @@ export default function Halaman() {
             value={teks}
             onChange={(e) => setTeks(e.target.value)}
             placeholder={'{\n  "grup": "Batch Konten AI",\n  "ide": [ { "judul": "...", "tool": "...", "hook": "..." } ]\n}'}
-            className="mt-4 h-80 w-full resize-y rounded-lg border border-line bg-[#0f1219] p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 focus:border-accent"
+            className="mt-4 h-56 w-full resize-y rounded-lg border border-line bg-[#0f1219] p-3 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 focus:border-accent sm:h-80 sm:p-4"
           />
 
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
@@ -402,7 +405,7 @@ export default function Halaman() {
             <span className="text-muted">{teks.length.toLocaleString("id-ID")} karakter</span>
           </div>
 
-          <button onClick={generate} disabled={!json} className="tombol-utama mt-5">
+          <button onClick={generate} disabled={!json} className="tombol-utama mt-5 w-full sm:w-auto">
             {json ? `Generate ${json.ideas.length} halaman` : "Generate halaman"}
           </button>
 

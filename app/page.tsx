@@ -5,7 +5,7 @@ import { Bilah } from "@/components/Bilah";
 import { Pratinjau } from "@/components/Pratinjau";
 import { cobaBacaJson } from "@/lib/jsonInput";
 import { bungkus, isiIde, isiIndex, namaFile } from "@/lib/docHtml";
-import { copyKaya, unduhFile, unduhIde, unduhZipGrup } from "@/lib/export";
+import { copyKaya, jumlahBerkasZip, unduhFile, unduhIde, unduhZipGrup } from "@/lib/export";
 import { capWaktu, type Group, type Idea } from "@/lib/types";
 import {
   NICHE_DEFAULT,
@@ -185,7 +185,7 @@ export default function Halaman() {
                 Unduh index
               </button>
               <button onClick={() => unduhZipGrup(grup)} className="tombol-utama">
-                Unduh ZIP ({grup.ideas.length + 2} file)
+                Unduh ZIP ({jumlahBerkasZip(grup)} file)
               </button>
             </>
           }

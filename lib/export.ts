@@ -19,22 +19,31 @@ export function unduhIde(ide: Idea, total: number) {
   unduhFile(namaFile(ide), halamanIde(ide, total));
 }
 
-/** Satu ZIP berisi folder tanggal + semua halaman ide + index. */
+/** Berkas di luar halaman ide. Dipakai juga untuk menghitung isi ZIP di label tombol. */
+export const BERKAS_TAMBAHAN = ["#0-INDEX.html", "SEMUA-IDE.html", "sumber-asli.txt"] as const;
+
+export const jumlahBerkasZip = (g: Group): number => g.ideas.length + BERKAS_TAMBAHAN.length;
+
+/** Peta nama berkas ke isinya. Murni, tanpa DOM, supaya bisa diuji terpisah. */
+export function berkasZip(g: Group): Record<string, string> {
+  const out: Record<string, string> = {};
+  out[BERKAS_TAMBAHAN[0]] = bungkus(`${g.nama} - Index`, isiIndex(g));
+  g.ideas.forEach((i) => (out[namaFile(i)] = halamanIde(i, g.ideas.length)));
+  out[BERKAS_TAMBAHAN[1]] = bungkus(
+    g.nama,
+    [isiIndex(g), ...g.ideas.map((i) => isiIde(i, g.ideas.length))].join(
+      '\n<hr style="border:none;border-top:2px solid #333;margin:20pt 0;">\n'
+    )
+  );
+  out[BERKAS_TAMBAHAN[2]] = g.sourceText;
+  return out;
+}
+
+/** Satu ZIP berisi folder bercap waktu, semua halaman ide, index, gabungan, dan sumber asli. */
 export async function unduhZipGrup(g: Group) {
   const zip = new JSZip();
   const folder = zip.folder(g.folder)!;
-  folder.file("#0-INDEX.html", bungkus(`${g.nama} - Index`, isiIndex(g)));
-  g.ideas.forEach((i) => folder.file(namaFile(i), halamanIde(i, g.ideas.length)));
-  folder.file(
-    "SEMUA-IDE.html",
-    bungkus(
-      g.nama,
-      [isiIndex(g), ...g.ideas.map((i) => isiIde(i, g.ideas.length))].join(
-        '\n<hr style="border:none;border-top:2px solid #333;margin:20pt 0;">\n'
-      )
-    )
-  );
-  folder.file("sumber-asli.txt", g.sourceText);
+  for (const [nama, isi] of Object.entries(berkasZip(g))) folder.file(nama, isi);
   const blob = await zip.generateAsync({ type: "blob" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

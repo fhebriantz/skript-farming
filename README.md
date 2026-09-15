@@ -1,55 +1,81 @@
 # Script Farming
 
-Tempel satu blok berisi banyak ide konten sekaligus. Aplikasi memisahkan tiap ide,
-merapikannya dengan Gemini, lalu membuat satu halaman + satu file HTML per ide,
+Tempel ide konten, langsung jadi halaman siap baca dan file HTML siap copy ke Google Docs,
 dikelompokkan dalam folder tanggal.
 
-Ukuran font hasil export mengikuti kebutuhan Google Docs: **judul utama 14, sub judul 12, teks biasa 11**.
+Ukuran font hasil export mengikuti kebutuhan Google Docs:
+**judul utama 14, sub judul 12, teks biasa 11**.
+
+Tidak ada API, tidak ada kunci rahasia, tidak ada database, tidak ada login, tidak ada penyimpanan.
+Semua pemrosesan terjadi di browser, dan hasilnya hanya hidup selama halaman terbuka.
+Situsnya terbuka untuk siapa saja.
 
 ---
 
-## Dua cara pakai
+## Dua cara input
 
-| Mode | Kuota Gemini | Kapan dipakai |
+| Mode | Input | Hasil |
 |---|---|---|
-| **JSON (tanpa API)** | **nol** | Kamu sudah punya 12 ide dalam bentuk JSON. Semua field dipetakan langsung. |
-| **Teks mentah** | 1 panggilan per ide | Catatan berantakan yang perlu dirapikan AI dulu. |
+| **JSON** | JSON terstruktur | Semua field terisi lengkap, termasuk gerakan tangan dan virality check |
+| **Teks mentah** | Catatan berlabel | Dibaca parser lokal berdasarkan label `Tool`, `Harga`, `Hook`, `SCRIPT`, dan seterusnya |
 
-Mode JSON adalah jalur hemat. Prompt siap pakai untuk menghasilkan JSON-nya ada di
-`contoh/prompt-generator.md`, dijalankan di chat AI biasa (Gemini web, ChatGPT, Claude) yang
-memakai jatah chat, bukan kuota API. Contoh JSON yang valid ada di `contoh/format-12-ide.json`.
+Aplikasi mendeteksi sendiri bentuk inputnya. Begitu yang dipaste berupa JSON yang dikenali,
+badge berubah hijau dan jalur JSON yang dipakai.
 
-Aplikasi mendeteksi sendiri: begitu teks yang dipaste berbentuk JSON yang dikenali, badge berubah
-hijau dan tombol generate berjalan tanpa memanggil API sama sekali.
+### Mode JSON
 
-## Cara kerja mode teks mentah
+Bentuk yang diterima:
 
-1. **Pisah lokal.** Teks dipecah jadi beberapa blok ide tanpa memanggil API (deteksi `IDE #1`,
-   `## 2) ...`, `#3 - ...`, atau separator `---`). Ini menghemat kuota: API hanya dipakai
-   untuk merapikan isi, bukan untuk memisahkan.
-2. **Ekstrak per ide.** Tiap blok dikirim ke `/api/parse` secara paralel (maksimal 3 sekaligus).
-   Satu request = satu ide, jadi tidak ada request yang menabrak batas 60 detik Vercel.
-3. **Urutkan.** Hasil diurutkan dari skor terbesar ke terkecil lalu dinomori ulang.
-4. **Simpan & export.** Grup disimpan di IndexedDB browser. Bisa dibuka sebagai halaman,
-   di-copy ke Google Docs, atau diunduh sebagai ZIP berisi folder tanggal.
+```json
+{
+  "grup": "Batch Konten AI",
+  "tanggal": "2026-09-15",
+  "ide": [ { "judul": "...", "tool": "...", "hook": "..." } ]
+}
+```
 
-## Ketahanan kuota Gemini
+Selain kunci `ide`, diterima juga `ideas`, `konten`, `items`, atau array telanjang `[ ... ]`.
 
-| Lapis | Perilaku |
-|---|---|
-| Rantai model | `GEMINI_MODEL` lalu `GEMINI_FALLBACKS` dicoba berurutan |
-| HTTP 429 | Model ditandai dan dilewati 30 menit, langsung pindah ke model berikutnya |
-| HTTP 5xx | Diulang 3x dengan backoff eksponensial |
-| Semua model gagal | Jatuh ke parser heuristik lokal tanpa API, hasil tetap keluar (ditandai "parser lokal") |
-| Cache | Paste yang sama persis diambil dari IndexedDB, nol request API |
+- Contoh JSON valid: `contoh/format-12-ide.json`
+- Prompt siap pakai untuk menghasilkan JSON itu: `contoh/prompt-generator.md`
 
-Pemakaian token dicatat per grup dan ditampilkan di halaman folder.
+Field per ide: `judul`, `headline`, `tool`, `linkResmi`, `harga`, `slot`, `contentGap`,
+`targetAudience`, `masalah`, `caraKerja`, `wowMoment`, `hook`, `gerakanHook`, `script[]`,
+`recording[]`, `cta`, `caption`, `onScreenText`, `scores`, `totalScore`, `catatanProduksi`,
+`viralityCheck[]`.
 
-## Menjalankan lokal
+Field yang dikosongkan tidak membuat parsing gagal, bagiannya hanya tidak muncul di dokumen.
+`totalScore` boleh diisi `0`, nanti dihitung dari rata-rata `scores`.
+
+Ide diurutkan otomatis dari skor terbesar ke terkecil lalu dinomori ulang `#1` sampai `#12`.
+
+## Export
+
+Tombol **Unduh ZIP** menghasilkan struktur folder yang sebenarnya:
+
+```
+2026-09-15/
+├── #0-INDEX.html
+├── #1-judul-ide.html
+├── #2-judul-ide.html
+├── ...
+├── SEMUA-IDE.html      (semua ide dalam satu file)
+└── sumber-asli.txt
+```
+
+Tombol **Copy ke Docs** menyalin sebagai rich text, jadi ukuran font 14/12/11 ikut terbawa
+saat dipaste ke Google Docs dan tabelnya tetap jadi tabel asli.
+
+## Tidak ada penyimpanan
+
+Hasil generate hanya ada di memori halaman. Refresh atau tutup tab, hasilnya hilang.
+Tidak ada IndexedDB, tidak ada localStorage, tidak ada cookie, dan tidak ada apa pun yang
+dikirim ke server. Cara menyimpan hasil cuma satu: **Unduh ZIP**.
+
+## Menjalankan
 
 ```bash
 npm install
-cp .env.example .env.local   # isi GEMINI_API_KEY
 npm run dev
 ```
 
@@ -62,77 +88,21 @@ npm i -g vercel
 vercel
 ```
 
-Lalu set environment variable di dashboard Vercel (Settings -> Environment Variables):
-
-| Nama | Wajib | Contoh |
-|---|---|---|
-| `GEMINI_API_KEY` | ya | `AQ.Ab8...` |
-| `ADMIN_USER` | ya | `admin` |
-| `ADMIN_PASSWORD` | ya | password pilihanmu |
-| `AUTH_SECRET` | ya | hasil `openssl rand -base64 32` |
-| `GEMINI_MODEL` | tidak | `gemini-3.6-flash` |
-| `GEMINI_FALLBACKS` | tidak | `gemini-3.5-flash,gemini-2.5-flash,gemini-2.5-flash-lite` |
-
-Kalau `AUTH_SECRET` diganti, semua sesi yang sedang berjalan otomatis gugur dan harus login ulang.
-
-Tidak ada database, tidak ada penulisan file di server, tidak ada dependensi eksternal lain,
-jadi aplikasi ini jalan apa adanya di Vercel (termasuk paket Hobby).
-
-### Kenapa penyimpanan ada di browser
-
-Serverless Vercel tidak punya filesystem permanen, jadi "folder tanggal" tidak bisa jadi folder
-sungguhan di server. Grup disimpan di IndexedDB browser, dan tombol **Unduh ZIP** menghasilkan
-struktur folder yang sebenarnya di komputer:
-
-```
-2026-09-15/
-├── #0-INDEX.html
-├── #1-judul-ide.html
-├── #2-judul-ide.html
-├── ...
-├── SEMUA-IDE.html      (semua ide dalam satu file)
-└── sumber-asli.txt
-```
-
-Konsekuensinya: data tidak otomatis ikut pindah antar browser atau perangkat. Kalau nanti butuh
-itu, tinggal ganti `lib/store.ts` dengan Vercel KV atau Postgres tanpa mengubah bagian lain.
-
-## Login
-
-Seluruh halaman dan seluruh endpoint API dikunci oleh `middleware.ts`. Pengunjung yang belum
-masuk dialihkan ke `/login`, sedangkan panggilan API dijawab `401`. Ini penting karena
-`/api/parse` memakai kuota Gemini milikmu, jadi endpoint itu tidak boleh terbuka untuk umum.
-
-- Kredensial dibaca dari `ADMIN_USER` dan `ADMIN_PASSWORD`, tidak ada yang tertanam di kode.
-- Setelah berhasil masuk, sesi disimpan sebagai cookie `HttpOnly` yang ditandatangani HMAC-SHA256
-  dan berlaku **30 hari**, jadi tidak ditanya password lagi tiap buka.
-- Cookie `HttpOnly` berarti tidak bisa dibaca JavaScript, dan tanda tangan HMAC membuatnya tidak
-  bisa dipalsukan tanpa `AUTH_SECRET`.
-- Username dan password dibandingkan dengan perbandingan waktu tetap, plus jeda 400ms tiap
-  percobaan gagal.
-- Tombol **Keluar** ada di pojok kanan atas.
+Tidak ada environment variable yang perlu diisi sama sekali.
 
 ## Struktur
 
 ```
 app/
-├── login/page.tsx              gerbang masuk
-├── page.tsx                    input + daftar folder
-├── g/[groupId]/page.tsx        isi satu folder tanggal
-├── g/[groupId]/[ideaId]/page.tsx   satu halaman ide
-└── api/parse/route.ts          ekstraksi satu ide via Gemini
-middleware.ts       kunci semua halaman & API kecuali /login
+└── page.tsx        satu halaman: input -> daftar ide -> detail ide
+lib/
+├── jsonInput.ts    parser JSON
+├── textInput.ts    parser teks berlabel
+├── split.ts        pisah satu paste jadi beberapa ide
+├── docHtml.ts      render HTML 14/12/11 siap Google Docs
+├── export.ts       unduh file, ZIP, copy rich text
+└── types.ts
 contoh/
 ├── prompt-generator.md   prompt siap pakai, output JSON
-└── format-12-ide.json    contoh JSON yang valid
-lib/
-├── auth.ts         cookie sesi bertanda tangan HMAC
-├── jsonInput.ts    parser JSON tanpa API
-├── split.ts        pisah paste jadi beberapa ide (lokal, tanpa API)
-├── gemini.ts       rantai model, cooldown 429, backoff 5xx
-├── prompt.ts       system instruction + schema JSON
-├── fallback.ts     parser heuristik tanpa API
-├── docHtml.ts      render HTML 14/12/11 siap Google Docs
-├── store.ts        IndexedDB (grup + cache)
-└── export.ts       unduh file, ZIP, copy rich text
+└── format-12-ide.json    contoh JSON valid
 ```

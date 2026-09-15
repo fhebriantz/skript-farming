@@ -71,21 +71,3 @@ export async function copyKaya(html: string): Promise<boolean> {
     }
   }
 }
-
-/** Backup semua grup jadi satu berkas JSON supaya data bisa dipindah antar browser/perangkat. */
-export function unduhBackup(grup: Group[]) {
-  const isi = JSON.stringify({ versi: 1, dibuat: new Date().toISOString(), grup }, null, 1);
-  unduhFile(
-    `script-farming-backup-${new Date().toISOString().slice(0, 10)}.json`,
-    isi,
-    "application/json;charset=utf-8"
-  );
-}
-
-export async function bacaBackup(file: File): Promise<Group[]> {
-  const teks = await file.text();
-  const data = JSON.parse(teks);
-  const grup = Array.isArray(data) ? data : data?.grup;
-  if (!Array.isArray(grup)) throw new Error("Berkas backup tidak dikenali.");
-  return grup.filter((g: any) => g?.id && Array.isArray(g?.ideas)) as Group[];
-}

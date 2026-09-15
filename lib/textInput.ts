@@ -1,8 +1,7 @@
 import { EMPTY_SCORES, hitungTotal, slugify, type Idea, type ScriptLine, type Scores, type ShotLine } from "./types";
 
 /**
- * Ekstraktor heuristik tanpa API.
- * Dipakai kalau semua model Gemini kehabisan kuota supaya pekerjaan tidak berhenti total.
+ * Parser teks lokal. Tidak memanggil API apa pun.
  * Cara kerjanya: deteksi baris yang berupa label bagian, lalu ambil isi sampai label berikutnya.
  */
 
@@ -139,7 +138,7 @@ function parseScores(teks: string): Scores {
   return s;
 }
 
-export function ekstrakHeuristik(blok: string, urutan: number): Idea {
+export function parseTeks(blok: string, urutan: number): Idea {
   const seksi = bagiSeksi(blok);
 
   const judulRaw =

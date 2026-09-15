@@ -1,9 +1,8 @@
 import { EMPTY_SCORES, hitungTotal, slugify, type CekViral, type Idea, type Scores } from "./types";
 
 /**
- * Jalur tanpa API sama sekali.
- * Kalau teks yang dipaste ternyata JSON dengan bentuk yang dikenali, semua field dipetakan
- * langsung tanpa memanggil Gemini, jadi nol kuota terpakai.
+ * Parser JSON. Kalau teks yang dipaste berbentuk JSON yang dikenali, semua field dipetakan
+ * langsung di browser tanpa server dan tanpa panggilan jaringan apa pun.
  */
 
 export type HasilJson = {

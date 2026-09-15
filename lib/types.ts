@@ -54,12 +54,8 @@ export type Idea = {
 };
 
 export type GroupMeta = {
-  model: string;
-  source: "gemini" | "heuristik" | "json";
-  tokensIn: number;
-  tokensOut: number;
-  calls: number;
-  durasiMs: number;
+  /** Dari mana ide dibaca: JSON terstruktur atau teks mentah. */
+  source: "json" | "teks";
 };
 
 export type Group = {

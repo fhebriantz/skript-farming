@@ -53,11 +53,6 @@ export type Idea = {
   viralityCheck: CekViral[];
 };
 
-export type GroupMeta = {
-  /** Dari mana ide dibaca: JSON terstruktur atau teks mentah. */
-  source: "json" | "teks";
-};
-
 export type Group = {
   id: string;
   tanggal: string; // YYYY-MM-DD -> dipakai sebagai nama folder
@@ -65,7 +60,6 @@ export type Group = {
   createdAt: number;
   sourceText: string;
   ideas: Idea[];
-  meta: GroupMeta;
 };
 
 export const EMPTY_SCORES: Scores = {

@@ -4,14 +4,11 @@ import { useMemo, useState } from "react";
 import { Bilah } from "@/components/Bilah";
 import { Pratinjau } from "@/components/Pratinjau";
 import { cobaBacaJson } from "@/lib/jsonInput";
-import { parseTeks } from "@/lib/textInput";
-import { pisahBlok } from "@/lib/split";
 import { bungkus, isiIde, isiIndex, namaFile } from "@/lib/docHtml";
 import { copyKaya, unduhFile, unduhIde, unduhZipGrup } from "@/lib/export";
 import type { Group, Idea } from "@/lib/types";
 
 const hariIni = () => new Date().toISOString().slice(0, 10);
-type Mode = "json" | "teks";
 
 const CONTOH_JSON = `{
   "grup": "Batch Konten AI",
@@ -48,10 +45,8 @@ export default function Halaman() {
   const [teks, setTeks] = useState("");
   const [nama, setNama] = useState("");
   const [tanggal, setTanggal] = useState(hariIni());
-  const [mode, setMode] = useState<Mode>("json");
   const [lihatFormat, setLihatFormat] = useState(false);
   const [galat, setGalat] = useState("");
-  const [peringatan, setPeringatan] = useState("");
   const [status, setStatus] = useState("");
 
   // Hasil hanya hidup di memori. Tidak ada yang ditulis ke disk, cookie, atau penyimpanan browser.
@@ -59,7 +54,6 @@ export default function Halaman() {
   const [pilih, setPilih] = useState<Idea | null>(null);
 
   const json = useMemo(() => cobaBacaJson(teks), [teks]);
-  const blok = useMemo(() => (json ? [] : pisahBlok(teks)), [teks, json]);
 
   function lapor(pesan: string) {
     setStatus(pesan);
@@ -74,51 +68,24 @@ export default function Halaman() {
 
   function generate() {
     setGalat("");
-    setPeringatan("");
     if (!teks.trim()) return setGalat("Inputnya masih kosong.");
+    if (!json) return setGalat("Ini bukan JSON yang dikenali. Cek formatnya lewat tombol Lihat format JSON.");
 
-    if (json) {
-      const ideas = urutkan(json.ideas);
-      setGrup({
-        id: "memori",
-        tanggal: json.tanggal || tanggal,
-        nama: nama.trim() || json.nama || `JSON ${ideas.length} ide`,
-        createdAt: Date.now(),
-        sourceText: teks,
-        ideas,
-        meta: { source: "json" },
-      });
-      return;
-    }
-
-    if (mode === "json") {
-      return setGalat("Ini bukan JSON yang dikenali. Cek formatnya, atau pindah ke tab Teks mentah.");
-    }
-    if (!blok.length) return setGalat("Tidak ada ide yang terdeteksi dari teks ini.");
-
-    const ideas = urutkan(blok.map((b, i) => parseTeks(b, i + 1)));
-    const kosong = ideas.filter((i) => !i.tool && !i.hook && !i.script.length).length;
+    const ideas = urutkan(json.ideas);
     setGrup({
       id: "memori",
-      tanggal,
-      nama: nama.trim() || `Teks ${ideas.length} ide`,
+      tanggal: json.tanggal || tanggal,
+      nama: nama.trim() || json.nama || `${ideas.length} ide`,
       createdAt: Date.now(),
       sourceText: teks,
       ideas,
-      meta: { source: "teks" },
     });
-    if (kosong) {
-      setPeringatan(
-        `${kosong} ide hampir kosong karena labelnya tidak dikenali. Parser teks mengandalkan label seperti "Tool", "Harga", "Hook", "SCRIPT". Untuk hasil paling lengkap, pakai mode JSON.`
-      );
-    }
   }
 
   function mulaiBaru() {
     setGrup(null);
     setPilih(null);
     setGalat("");
-    setPeringatan("");
   }
 
   /* ---------------------------------------------------------------- */
@@ -213,10 +180,6 @@ export default function Halaman() {
               <dt className="text-muted">Ide</dt>
               <dd className="font-semibold text-white">{grup.ideas.length}</dd>
             </div>
-            <div>
-              <dt className="text-muted">Sumber</dt>
-              <dd className="font-semibold text-white">{grup.meta.source === "teks" ? "teks mentah" : "JSON"}</dd>
-            </div>
           </dl>
         </div>
 
@@ -226,9 +189,6 @@ export default function Halaman() {
         </p>
 
         {status && <p className="mb-4 rounded-lg border border-accent/40 bg-accent/10 p-3 text-sm text-accent">{status}</p>}
-        {peringatan && (
-          <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">{peringatan}</p>
-        )}
 
         <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           <section>
@@ -275,75 +235,35 @@ export default function Halaman() {
 
       <div className="mx-auto max-w-3xl">
         <section className="kartu p-5">
-          <div className="mb-4 inline-flex rounded-lg border border-line bg-[#0f1219] p-1">
-            {([["json", "JSON"], ["teks", "Teks mentah"]] as [Mode, string][]).map(([m, label]) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${
-                  mode === m ? "bg-accent text-white" : "text-muted hover:text-slate-200"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {mode === "json" ? (
-            <>
-              <h1 className="text-lg font-semibold text-white">Paste JSON ide konten</h1>
-              <p className="mt-1 text-sm text-muted">
-                Semua field dipetakan langsung dan diproses{" "}
-                <strong className="text-slate-200">sepenuhnya di browser</strong>. Tidak ada yang dikirim ke server dan
-                tidak ada yang disimpan.
-              </p>
-              <button onClick={() => setLihatFormat((v) => !v)} className="tombol mt-3 text-xs">
-                {lihatFormat ? "Sembunyikan format" : "Lihat format JSON"}
-              </button>
-              {lihatFormat && (
-                <pre className="mt-3 max-h-64 overflow-auto rounded-lg border border-line bg-[#0f1219] p-3 text-[11px] leading-relaxed text-slate-300">
-                  {CONTOH_JSON}
-                </pre>
-              )}
-            </>
-          ) : (
-            <>
-              <h1 className="text-lg font-semibold text-white">Paste teks mentah</h1>
-              <p className="mt-1 text-sm text-muted">
-                Dibaca parser lokal berdasarkan label seperti <code className="rounded bg-white/5 px-1">Tool</code>,{" "}
-                <code className="rounded bg-white/5 px-1">Harga</code>,{" "}
-                <code className="rounded bg-white/5 px-1">Hook</code>,{" "}
-                <code className="rounded bg-white/5 px-1">SCRIPT</code>. Untuk hasil paling lengkap, pakai mode JSON.
-              </p>
-            </>
+          <h1 className="text-lg font-semibold text-white">Paste JSON ide konten</h1>
+          <p className="mt-1 text-sm text-muted">
+            Semua field dipetakan langsung dan diproses{" "}
+            <strong className="text-slate-200">sepenuhnya di browser</strong>. Tidak ada yang dikirim ke server dan
+            tidak ada yang disimpan.
+          </p>
+          <button onClick={() => setLihatFormat((v) => !v)} className="tombol mt-3 text-xs">
+            {lihatFormat ? "Sembunyikan format" : "Lihat format JSON"}
+          </button>
+          {lihatFormat && (
+            <pre className="mt-3 max-h-64 overflow-auto rounded-lg border border-line bg-[#0f1219] p-3 text-[11px] leading-relaxed text-slate-300">
+              {CONTOH_JSON}
+            </pre>
           )}
 
           <textarea
             value={teks}
             onChange={(e) => setTeks(e.target.value)}
-            placeholder={
-              mode === "json"
-                ? '{\n  "grup": "Batch Konten AI",\n  "ide": [ { "judul": "...", "tool": "...", "hook": "..." } ]\n}'
-                : "IDE #1 - Foto Struk jadi Excel\nTool: ...\nHook: Jangan ketik struk ini ke Excel...\n\nIDE #2 - Hapus objek foto\nTool: ...\n..."
-            }
+            placeholder={'{\n  "grup": "Batch Konten AI",\n  "ide": [ { "judul": "...", "tool": "...", "hook": "..." } ]\n}'}
             className="mt-4 h-80 w-full resize-y rounded-lg border border-line bg-[#0f1219] p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 focus:border-accent"
           />
 
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             <span
               className={`rounded-md px-2 py-1 ${
-                json
-                  ? "bg-emerald-500/15 text-emerald-300"
-                  : blok.length
-                    ? "bg-accent/15 text-accent"
-                    : "bg-white/5 text-muted"
+                json ? "bg-emerald-500/15 text-emerald-300" : "bg-white/5 text-muted"
               }`}
             >
-              {json
-                ? `JSON terbaca - ${json.ideas.length} ide`
-                : blok.length
-                  ? `Terdeteksi ${blok.length} ide`
-                  : "Belum ada ide terdeteksi"}
+              {json ? `JSON terbaca - ${json.ideas.length} ide` : "Belum ada JSON yang terbaca"}
             </span>
             <span className="text-muted">{teks.length.toLocaleString("id-ID")} karakter</span>
           </div>
@@ -369,8 +289,8 @@ export default function Halaman() {
             </label>
           </div>
 
-          <button onClick={generate} disabled={!json && !blok.length} className="tombol-utama mt-5">
-            {json ? `Generate ${json.ideas.length} halaman` : `Generate ${blok.length || ""} halaman`}
+          <button onClick={generate} disabled={!json} className="tombol-utama mt-5">
+            {json ? `Generate ${json.ideas.length} halaman` : "Generate halaman"}
           </button>
 
           {galat && <p className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-300">{galat}</p>}

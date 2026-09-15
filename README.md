@@ -12,19 +12,9 @@ Situsnya terbuka untuk siapa saja.
 
 ---
 
-## Dua cara input
+## Input
 
-| Mode | Input | Hasil |
-|---|---|---|
-| **JSON** | JSON terstruktur | Semua field terisi lengkap, termasuk gerakan tangan dan virality check |
-| **Teks mentah** | Catatan berlabel | Dibaca parser lokal berdasarkan label `Tool`, `Harga`, `Hook`, `SCRIPT`, dan seterusnya |
-
-Aplikasi mendeteksi sendiri bentuk inputnya. Begitu yang dipaste berupa JSON yang dikenali,
-badge berubah hijau dan jalur JSON yang dipakai.
-
-### Mode JSON
-
-Bentuk yang diterima:
+Satu-satunya input adalah JSON. Bentuk yang diterima:
 
 ```json
 {
@@ -94,11 +84,9 @@ Tidak ada environment variable yang perlu diisi sama sekali.
 
 ```
 app/
-└── page.tsx        satu halaman: input -> daftar ide -> detail ide
+└── page.tsx        satu halaman: paste JSON -> daftar ide -> detail ide
 lib/
 ├── jsonInput.ts    parser JSON
-├── textInput.ts    parser teks berlabel
-├── split.ts        pisah satu paste jadi beberapa ide
 ├── docHtml.ts      render HTML 14/12/11 siap Google Docs
 ├── export.ts       unduh file, ZIP, copy rich text
 └── types.ts

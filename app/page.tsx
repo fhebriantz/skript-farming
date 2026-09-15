@@ -259,7 +259,7 @@ export default function Halaman() {
 
       <div className="mx-auto max-w-3xl">
         <div className="mb-4 inline-flex rounded-lg border border-line bg-[#0f1219] p-1">
-          {([["paste", "Paste JSON"], ["prompt", "Buat Prompt"]] as ["paste" | "prompt", string][]).map(
+          {([["prompt", "Buat Prompt"], ["paste", "Paste JSON"]] as ["paste" | "prompt", string][]).map(
             ([t, label]) => (
               <button
                 key={t}

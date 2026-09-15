@@ -26,6 +26,7 @@ const ALIAS: Record<string, string[]> = {
   scores: ["scores", "score", "skor", "penilaian"],
   totalScore: ["total score", "skor total"],
   catatanProduksi: ["catatan produksi", "catatan", "production note"],
+  gerakanHook: ["gerakan saat hook", "gerakan hook", "gestur hook", "body language"],
 };
 
 /** Samakan bentuk label supaya "**Hook 0–3 Detik**" dan "hook 0-3 detik" dianggap sama. */
@@ -177,6 +178,7 @@ export function ekstrakHeuristik(blok: string, urutan: number): Idea {
     caraKerja: seksi.caraKerja || "",
     wowMoment: seksi.wowMoment || "",
     hook: hook.split("\n")[0] || "",
+    gerakanHook: seksi.gerakanHook || "",
     script: script.length ? script : parseScript(blok),
     recording: parseRecording(seksi.recording || ""),
     cta: seksi.cta || "",
@@ -185,5 +187,6 @@ export function ekstrakHeuristik(blok: string, urutan: number): Idea {
     scores,
     totalScore: Math.round(totalScore * 10) / 10,
     catatanProduksi: seksi.catatanProduksi || "",
+    viralityCheck: [],
   };
 }

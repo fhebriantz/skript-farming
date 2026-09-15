@@ -8,7 +8,21 @@ Ukuran font hasil export mengikuti kebutuhan Google Docs: **judul utama 14, sub 
 
 ---
 
-## Cara kerja
+## Dua cara pakai
+
+| Mode | Kuota Gemini | Kapan dipakai |
+|---|---|---|
+| **JSON (tanpa API)** | **nol** | Kamu sudah punya 12 ide dalam bentuk JSON. Semua field dipetakan langsung. |
+| **Teks mentah** | 1 panggilan per ide | Catatan berantakan yang perlu dirapikan AI dulu. |
+
+Mode JSON adalah jalur hemat. Prompt siap pakai untuk menghasilkan JSON-nya ada di
+`contoh/prompt-generator.md`, dijalankan di chat AI biasa (Gemini web, ChatGPT, Claude) yang
+memakai jatah chat, bukan kuota API. Contoh JSON yang valid ada di `contoh/format-12-ide.json`.
+
+Aplikasi mendeteksi sendiri: begitu teks yang dipaste berbentuk JSON yang dikenali, badge berubah
+hijau dan tombol generate berjalan tanpa memanggil API sama sekali.
+
+## Cara kerja mode teks mentah
 
 1. **Pisah lokal.** Teks dipecah jadi beberapa blok ide tanpa memanggil API (deteksi `IDE #1`,
    `## 2) ...`, `#3 - ...`, atau separator `---`). Ini menghemat kuota: API hanya dipakai
@@ -108,8 +122,12 @@ app/
 ├── g/[groupId]/[ideaId]/page.tsx   satu halaman ide
 └── api/parse/route.ts          ekstraksi satu ide via Gemini
 middleware.ts       kunci semua halaman & API kecuali /login
+contoh/
+├── prompt-generator.md   prompt siap pakai, output JSON
+└── format-12-ide.json    contoh JSON yang valid
 lib/
 ├── auth.ts         cookie sesi bertanda tangan HMAC
+├── jsonInput.ts    parser JSON tanpa API
 ├── split.ts        pisah paste jadi beberapa ide (lokal, tanpa API)
 ├── gemini.ts       rantai model, cooldown 429, backoff 5xx
 ├── prompt.ts       system instruction + schema JSON

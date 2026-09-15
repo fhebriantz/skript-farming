@@ -1,0 +1,92 @@
+{
+  "grup": "Batch Konten AI Minggu 1-3",
+  "tanggal": "2026-09-15",
+  "ide": [
+    {
+      "judul": "Foto Struk Jadi Excel Otomatis",
+      "headline": "Jangan pernah ketik struk ke Excel lagi.",
+      "tool": "Google Gemini",
+      "linkResmi": "https://gemini.google.com",
+      "harga": "Freemium - batas upload berbeda menurut akun",
+      "slot": "Minggu 1 - GILA, TERNYATA BISA",
+      "contentGap": "OCR sudah sering ditunjukkan, tapi angle 'tumpukan struk jadi file Excel siap edit' jauh lebih konkret dan punya before/after yang kuat.",
+      "targetAudience": "Pekerja kantoran, UMKM, mahasiswa, ibu rumah tangga",
+      "masalah": "Input pengeluaran dari struk satu per satu ke spreadsheet memakan waktu.",
+      "caraKerja": "Upload foto struk ke Gemini, minta ekstrak tanggal, toko, item, dan total, lalu minta dibuatkan tabel Excel.",
+      "wowMoment": "Satu foto struk kusut berubah jadi tabel Excel dengan kolom rapi.",
+      "hook": "Jangan ketik struk ini ke Excel. Serahin ke AI.",
+      "gerakanHook": "Angkat struk panjang dengan tangan kanan ke depan kamera, kibaskan sekali sampai terurai, lalu tarik turun cepat sambil geleng kepala kecil dan alis naik.",
+      "script": [
+        { "waktu": "0-3s",   "naskah": "Jangan ketik struk ini ke Excel. Serahin ke AI.", "gerakan": "Kibaskan struk di depan kamera lalu tarik turun, tunjuk layar HP dengan jari telunjuk." },
+        { "waktu": "3-7s",   "naskah": "Aku upload foto struk yang berantakan ini ke Gemini.", "gerakan": "Jari menekan tombol upload di layar, tahan sebentar supaya jelas terlihat." },
+        { "waktu": "7-14s",  "naskah": "Terus suruh baca tanggal, toko, item, total, dan bikin file Excel.", "gerakan": "Jari menyusuri teks prompt dari kiri ke kanan sambil mengetik." },
+        { "waktu": "14-17s", "naskah": "Dan tabelnya langsung jadi.", "gerakan": "Lingkari kolom hasil dengan jari, lalu tahan diam 1 detik." },
+        { "waktu": "17-20s", "naskah": "Save, ini kepake banget buat catatan pengeluaran.", "gerakan": "Angguk pelan ke kamera sambil menunjuk ikon simpan." }
+      ],
+      "recording": [
+        { "waktu": "0-3s",   "visual": "Tumpukan 3-5 struk di atas meja", "tindakan": "Zoom cepat ke struk yang penuh tulisan" },
+        { "waktu": "3-7s",   "visual": "Aplikasi Gemini, tombol upload", "tindakan": "Upload foto struk" },
+        { "waktu": "7-14s",  "visual": "Kolom prompt dan proses AI", "tindakan": "Ketik prompt singkat lalu potong ke hasil" },
+        { "waktu": "14-17s", "visual": "Tabel hasil", "tindakan": "Zoom ke kolom Tanggal, Toko, Total" },
+        { "waktu": "17-20s", "visual": "Hasil Excel dengan overlay SAVE", "tindakan": "Tahan hasil 2 detik" }
+      ],
+      "cta": "Save, nanti pas laporan pengeluaran pasti kepake.",
+      "caption": "Foto struk jangan diketik ulang. AI bisa bantu ubah jadi data yang jauh lebih rapi.",
+      "onScreenText": "FOTO STRUK -> EXCEL",
+      "scores": {
+        "novelty": 9,
+        "wow": 10,
+        "relatability": 10,
+        "ease": 10,
+        "free": 10,
+        "curiosity": 9,
+        "viral": 9
+      },
+      "totalScore": 9.6,
+      "catatanProduksi": "Gunakan struk yang benar-benar jelek: kusut, panjang, tinta pudar. Kontras before/after itu yang jual."
+    },
+    {
+      "judul": "Hapus Objek Pengganggu di Foto",
+      "headline": "Gue kira ini butuh Photoshop.",
+      "tool": "Adobe Express",
+      "linkResmi": "https://www.adobe.com/express/",
+      "harga": "Freemium - paket gratis punya akses AI terbatas",
+      "slot": "Minggu 1 - GILA, TERNYATA BISA",
+      "contentGap": "Bukan tutorial edit foto, tapi satu foto biasa langsung dibersihkan dari objek pengganggu dalam hitungan detik.",
+      "targetAudience": "Umum, content creator pemula, UMKM",
+      "masalah": "Ada orang, kabel, atau benda mengganggu di foto yang sudah bagus.",
+      "caraKerja": "Upload foto, pilih Remove Object, coret objeknya, AI mengisi ulang background.",
+      "wowMoment": "Objek hilang dan background terlihat seolah memang dari awal bersih.",
+      "hook": "Gue kira foto ini harus diedit manual.",
+      "gerakanHook": "Pegang HP menghadap kamera menampilkan foto before, dekatkan ke lensa, lalu tarik mundur sambil angkat alis dan miringkan kepala.",
+      "script": [
+        { "waktu": "0-3s",   "naskah": "Gue kira foto ini harus diedit manual.", "gerakan": "Dekatkan layar HP ke kamera lalu tarik mundur." },
+        { "waktu": "3-7s",   "naskah": "Padahal tinggal upload ke Adobe Express.", "gerakan": "Jari mengetuk tombol upload." },
+        { "waktu": "7-14s",  "naskah": "Pilih Remove Object, coret orang yang ganggu.", "gerakan": "Jari mencoret objek di layar dengan gerakan melingkar pelan." },
+        { "waktu": "14-17s", "naskah": "Dan AI isi background-nya sendiri.", "gerakan": "Tarik jari menjauh, tahan layar diam supaya hasil terbaca." },
+        { "waktu": "17-20s", "naskah": "Kirim ke teman yang sering motret tapi hasilnya rame.", "gerakan": "Tunjuk kamera dengan dua jari lalu tersenyum." }
+      ],
+      "recording": [
+        { "waktu": "0-3s",   "visual": "Foto before dengan objek pengganggu", "tindakan": "Tampilkan penuh layar" },
+        { "waktu": "3-7s",   "visual": "Adobe Express di HP", "tindakan": "Upload foto" },
+        { "waktu": "7-14s",  "visual": "Tool Remove Object", "tindakan": "Brush objek yang mau dihapus" },
+        { "waktu": "14-17s", "visual": "Hasil after", "tindakan": "Tampilkan foto bersih" },
+        { "waktu": "17-20s", "visual": "Split-screen before/after", "tindakan": "Tahan 2 detik" }
+      ],
+      "cta": "Kirim ke teman yang fotonya sering kemasukan orang.",
+      "caption": "Kadang yang bikin foto jelek cuma satu objek. AI sekarang bisa beresin itu langsung dari HP.",
+      "onScreenText": "BEFORE -> REMOVE -> AFTER",
+      "scores": {
+        "novelty": 8,
+        "wow": 10,
+        "relatability": 10,
+        "ease": 10,
+        "free": 10,
+        "curiosity": 8,
+        "viral": 9
+      },
+      "totalScore": 9.3,
+      "catatanProduksi": "Rekam dari HP, bukan desktop, supaya pesan 'nggak butuh Photoshop' makin kuat."
+    }
+  ]
+}

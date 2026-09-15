@@ -6,6 +6,9 @@ export type HasilGemini = {
   model: string;
   tokensIn: number;
   tokensOut: number;
+  /** Terisi hanya kalau pencarian web benar-benar dipakai. */
+  queryRiset: string[];
+  jumlahSumber: number;
 };
 
 /**
@@ -15,10 +18,12 @@ export type HasilGemini = {
  */
 const cooldown = new Map<string, number>();
 const COOLDOWN_MS = 1000 * 60 * 30;
+/** Model yang dijawab 404 (sudah dipensiunkan) tidak perlu dicoba lagi sama sekali. */
+const sudahPensiun = new Set<string>();
 
 function rantaiModel(): string[] {
   const utama = (process.env.GEMINI_MODEL || "gemini-3.6-flash").trim();
-  const cadangan = (process.env.GEMINI_FALLBACKS || "gemini-3.5-flash,gemini-2.5-flash,gemini-2.5-flash-lite")
+  const cadangan = (process.env.GEMINI_FALLBACKS || "gemini-3.8-flash,gemini-3.7-flash,gemini-3.5-flash,gemini-3.5-flash-lite")
     .split(",")
     .map((m) => m.trim())
     .filter(Boolean);
@@ -26,6 +31,7 @@ function rantaiModel(): string[] {
 }
 
 function sedangCooldown(model: string): boolean {
+  if (sudahPensiun.has(model)) return true;
   const sampai = cooldown.get(model);
   if (!sampai) return false;
   if (Date.now() > sampai) {
@@ -47,9 +53,11 @@ export class GeminiHabis extends Error {
 export async function panggilGemini(opts: {
   systemInstruction: string;
   prompt: string;
-  schema: Record<string, unknown>;
+  schema?: Record<string, unknown>;
   maxOutputTokens?: number;
   temperature?: number;
+  /** Aktifkan pencarian web. Kuotanya terpisah dari kuota teks dan sering habis lebih dulu. */
+  cariWeb?: boolean;
 }): Promise<HasilGemini> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new GeminiHabis("GEMINI_API_KEY belum diisi di environment.");
@@ -57,9 +65,9 @@ export async function panggilGemini(opts: {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: opts.systemInstruction }] },
     contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+    ...(opts.cariWeb ? { tools: [{ google_search: {} }] } : {}),
     generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: opts.schema,
+      ...(opts.schema ? { responseMimeType: "application/json", responseSchema: opts.schema } : {}),
       temperature: opts.temperature ?? 0.35,
       maxOutputTokens: opts.maxOutputTokens ?? 16384,
     },
@@ -97,6 +105,12 @@ export async function panggilGemini(opts: {
         continue;
       }
 
+      if (res.status === 404) {
+        sudahPensiun.add(model);
+        errTerakhir = `${model}: model sudah tidak tersedia (404)`;
+        break;
+      }
+
       if (!res.ok) {
         errTerakhir = `${model}: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`;
         break;
@@ -113,13 +127,19 @@ export async function panggilGemini(opts: {
         break;
       }
 
+      const meta = json?.candidates?.[0]?.groundingMetadata;
+      const umum = {
+        model,
+        tokensIn: json?.usageMetadata?.promptTokenCount ?? 0,
+        tokensOut: json?.usageMetadata?.candidatesTokenCount ?? 0,
+        queryRiset: (meta?.webSearchQueries ?? []) as string[],
+        jumlahSumber: (meta?.groundingChunks ?? []).length as number,
+      };
+
+      if (!opts.schema) return { data: teks, ...umum };
+
       try {
-        return {
-          data: JSON.parse(teks),
-          model,
-          tokensIn: json?.usageMetadata?.promptTokenCount ?? 0,
-          tokensOut: json?.usageMetadata?.candidatesTokenCount ?? 0,
-        };
+        return { data: JSON.parse(teks), ...umum };
       } catch {
         errTerakhir = `${model}: JSON tidak valid`;
         break;

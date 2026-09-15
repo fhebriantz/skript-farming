@@ -72,10 +72,20 @@ export function isiIde(ide: Idea, total: number): string {
   out.push(bagian("WOW Moment", ide.wowMoment));
 
   if (ide.hook) out.push(h2("Hook 0-3 Detik") + quote([ide.hook]));
+  out.push(bagian("Gerakan Tangan & Ekspresi Saat Hook", ide.gerakanHook));
 
   if (ide.script.length) {
     out.push(h2("Script 18-20 Detik"));
-    out.push(tabel(["Waktu", "Naskah"], ide.script.map((s) => [s.waktu, s.naskah])));
+    // Kolom gerakan hanya ditampilkan kalau memang ada isinya.
+    const adaGerakan = ide.script.some((s) => s.gerakan && s.gerakan.trim());
+    out.push(
+      adaGerakan
+        ? tabel(
+            ["Waktu", "Naskah", "Gerakan / Ekspresi"],
+            ide.script.map((s) => [s.waktu, s.naskah, s.gerakan ?? ""])
+          )
+        : tabel(["Waktu", "Naskah"], ide.script.map((s) => [s.waktu, s.naskah]))
+    );
   }
   if (ide.recording.length) {
     out.push(h2("Screen Recording Plan"));
@@ -95,6 +105,11 @@ export function isiIde(ide: Idea, total: number): string {
   }
 
   out.push(bagian("Catatan Produksi", ide.catatanProduksi));
+
+  if (ide.viralityCheck?.length) {
+    out.push(h2("Virality Check"));
+    out.push(tabel(["Pertanyaan", "Jawaban"], ide.viralityCheck.map((c) => [c.pertanyaan, c.jawaban])));
+  }
   return out.filter(Boolean).join("\n");
 }
 

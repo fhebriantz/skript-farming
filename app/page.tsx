@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bilah } from "@/components/Bilah";
 import { pisahBlok } from "@/lib/split";
+import { cobaBacaJson } from "@/lib/jsonInput";
 import { hashText } from "@/lib/hash";
 import { ambilCache, hapusGrup, semuaGrup, simpanCache, simpanGrup } from "@/lib/store";
 import { bacaBackup, unduhBackup } from "@/lib/export";
@@ -13,6 +14,7 @@ import type { Group, Idea } from "@/lib/types";
 const hariIni = () => new Date().toISOString().slice(0, 10);
 
 type Progres = { selesai: number; total: number; pesan: string };
+type Mode = "json" | "teks";
 
 export default function Halaman() {
   const router = useRouter();
@@ -25,17 +27,41 @@ export default function Halaman() {
   const [peringatan, setPeringatan] = useState("");
   const [grup, setGrup] = useState<Group[]>([]);
   const [infoBackup, setInfoBackup] = useState("");
+  const [mode, setMode] = useState<Mode>("json");
+  const [lihatFormat, setLihatFormat] = useState(false);
 
   useEffect(() => {
     semuaGrup().then(setGrup).catch(() => {});
   }, []);
 
-  const blok = useMemo(() => pisahBlok(teks), [teks]);
+  const json = useMemo(() => cobaBacaJson(teks), [teks]);
+  const blok = useMemo(() => (json ? [] : pisahBlok(teks)), [teks, json]);
 
   async function generate() {
     setGalat("");
     setPeringatan("");
     if (!teks.trim()) return setGalat("Teksnya masih kosong.");
+
+    // Jalur JSON: semua field dipetakan langsung, nol panggilan API.
+    if (json) {
+      const ideas = [...json.ideas]
+        .sort((a, b) => b.totalScore - a.totalScore || (b.scores?.viral ?? 0) - (a.scores?.viral ?? 0))
+        .map((x, n) => ({ ...x, rank: n + 1 }));
+      const g: Group = {
+        id: `${json.tanggal || tanggal}-${Date.now().toString(36)}`,
+        tanggal: json.tanggal || tanggal,
+        nama: nama.trim() || json.nama || `JSON ${ideas.length} ide`,
+        createdAt: Date.now(),
+        sourceText: teks,
+        ideas,
+        meta: { model: "-", source: "json", tokensIn: 0, tokensOut: 0, calls: 0, durasiMs: 0 },
+      };
+      await simpanGrup(g);
+      router.push(`/g/${g.id}`);
+      return;
+    }
+
+    if (mode === "json") return setGalat("Ini bukan JSON yang dikenali. Cek formatnya, atau pindah ke tab Teks mentah.");
     if (!blok.length) return setGalat("Tidak ada ide yang terdeteksi dari teks ini.");
 
     setJalan(true);
@@ -144,22 +170,100 @@ export default function Halaman() {
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="kartu p-5">
-          <h1 className="text-lg font-semibold text-white">Paste ide konten</h1>
-          <p className="mt-1 text-sm text-muted">
-            Tempel satu blok berisi banyak ide sekaligus. Tiap ide otomatis jadi satu halaman dan satu file HTML,
-            dikelompokkan dalam folder tanggal.
-          </p>
+          <div className="mb-4 inline-flex rounded-lg border border-line bg-[#0f1219] p-1">
+            {([["json", "JSON (tanpa API)"], ["teks", "Teks mentah"]] as [Mode, string][]).map(([m, label]) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                disabled={jalan}
+                className={`rounded-md px-4 py-1.5 text-sm font-medium transition ${
+                  mode === m ? "bg-accent text-white" : "text-muted hover:text-slate-200"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {mode === "json" ? (
+            <>
+              <h1 className="text-lg font-semibold text-white">Paste JSON ide konten</h1>
+              <p className="mt-1 text-sm text-muted">
+                Tempel JSON berisi 12 ide lengkap. Semua field dipetakan langsung, jadi{" "}
+                <strong className="text-slate-200">nol panggilan API dan nol kuota Gemini terpakai</strong>.
+              </p>
+              <button onClick={() => setLihatFormat((v) => !v)} className="tombol mt-3 text-xs">
+                {lihatFormat ? "Sembunyikan format" : "Lihat format JSON"}
+              </button>
+              {lihatFormat && (
+                <pre className="mt-3 max-h-64 overflow-auto rounded-lg border border-line bg-[#0f1219] p-3 text-[11px] leading-relaxed text-slate-300">
+{`{
+  "grup": "Batch Konten AI",
+  "tanggal": "${tanggal}",
+  "ide": [
+    {
+      "judul": "", "headline": "", "tool": "", "linkResmi": "", "harga": "",
+      "slot": "Minggu 1 - GILA, TERNYATA BISA",
+      "contentGap": "", "targetAudience": "", "masalah": "",
+      "caraKerja": "", "wowMoment": "",
+      "hook": "", "gerakanHook": "",
+      "script": [
+        { "waktu": "0-3s", "naskah": "", "gerakan": "" },
+        { "waktu": "3-7s", "naskah": "", "gerakan": "" },
+        { "waktu": "7-14s", "naskah": "", "gerakan": "" },
+        { "waktu": "14-17s", "naskah": "", "gerakan": "" },
+        { "waktu": "17-20s", "naskah": "", "gerakan": "" }
+      ],
+      "recording": [
+        { "waktu": "0-3s", "visual": "", "tindakan": "" }
+      ],
+      "cta": "", "caption": "", "onScreenText": "A -> B",
+      "scores": { "novelty": 0, "wow": 0, "relatability": 0,
+                  "ease": 0, "free": 0, "curiosity": 0, "viral": 0 },
+      "totalScore": 0, "catatanProduksi": ""
+    }
+  ]
+}`}
+                </pre>
+              )}
+              <p className="mt-3 text-xs leading-relaxed text-muted">
+                Prompt siap pakai untuk menghasilkan JSON ini ada di{" "}
+                <code className="rounded bg-white/5 px-1">contoh/prompt-generator.md</code>. Jalankan di chat AI biasa
+                (Gemini web, ChatGPT, Claude) supaya tidak memakai kuota API.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-lg font-semibold text-white">Paste teks mentah</h1>
+              <p className="mt-1 text-sm text-muted">
+                Catatan berantakan dirapikan Gemini. Butuh 1 panggilan API per ide, jadi 12 ide = 12 panggilan.
+                Kalau ingin hemat kuota, pakai tab JSON.
+              </p>
+            </>
+          )}
 
           <textarea
             value={teks}
             onChange={(e) => setTeks(e.target.value)}
-            placeholder={"Contoh:\n\nIDE #1 - Foto Struk jadi Excel\nTool: Gemini\nHook: Jangan ketik struk ini ke Excel...\n\nIDE #2 - Hapus objek foto\nTool: Adobe Express\n..."}
+            placeholder={
+              mode === "json"
+                ? '{\n  "grup": "Batch Konten AI",\n  "ide": [ { "judul": "...", "tool": "...", "hook": "..." } ]\n}'
+                : "IDE #1 - Foto Struk jadi Excel\nTool: Gemini\nHook: Jangan ketik struk ini ke Excel...\n\nIDE #2 - Hapus objek foto\nTool: Adobe Express\n..."
+            }
             className="mt-4 h-72 w-full resize-y rounded-lg border border-line bg-[#0f1219] p-4 font-mono text-[13px] leading-relaxed text-slate-200 outline-none placeholder:text-slate-600 focus:border-accent"
           />
 
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-            <span className={`rounded-md px-2 py-1 ${blok.length ? "bg-accent/15 text-accent" : "bg-white/5 text-muted"}`}>
-              {blok.length ? `Terdeteksi ${blok.length} ide` : "Belum ada ide terdeteksi"}
+            <span
+              className={`rounded-md px-2 py-1 ${
+                json ? "bg-emerald-500/15 text-emerald-300" : blok.length ? "bg-accent/15 text-accent" : "bg-white/5 text-muted"
+              }`}
+            >
+              {json
+                ? `JSON terbaca - ${json.ideas.length} ide, tanpa API`
+                : blok.length
+                  ? `Terdeteksi ${blok.length} ide`
+                  : "Belum ada ide terdeteksi"}
             </span>
             <span className="text-muted">{teks.length.toLocaleString("id-ID")} karakter</span>
           </div>
@@ -185,8 +289,12 @@ export default function Halaman() {
             </label>
           </div>
 
-          <button onClick={generate} disabled={jalan || !blok.length} className="tombol-utama mt-5">
-            {jalan ? "Memproses..." : `Generate ${blok.length || ""} halaman`}
+          <button onClick={generate} disabled={jalan || (!json && !blok.length)} className="tombol-utama mt-5">
+            {jalan
+              ? "Memproses..."
+              : json
+                ? `Generate ${json.ideas.length} halaman (tanpa API)`
+                : `Generate ${blok.length || ""} halaman`}
           </button>
 
           {progres && jalan && (

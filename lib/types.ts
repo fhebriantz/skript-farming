@@ -1,5 +1,7 @@
-export type ScriptLine = { waktu: string; naskah: string };
+/** `gerakan` = arahan gerakan tangan/tubuh/ekspresi yang dilakukan sambil mengucapkan baris itu. */
+export type ScriptLine = { waktu: string; naskah: string; gerakan?: string };
 export type ShotLine = { waktu: string; visual: string; tindakan: string };
+export type CekViral = { pertanyaan: string; jawaban: string };
 
 export type Scores = {
   novelty: number;
@@ -37,6 +39,8 @@ export type Idea = {
   caraKerja: string;
   wowMoment: string;
   hook: string;
+  /** Arahan gerakan tangan, posisi badan, dan ekspresi khusus untuk 3 detik pertama. */
+  gerakanHook: string;
   script: ScriptLine[];
   recording: ShotLine[];
   cta: string;
@@ -45,11 +49,13 @@ export type Idea = {
   scores: Scores;
   totalScore: number;
   catatanProduksi: string;
+  /** Virality check, opsional. Kosong kalau tidak diisi di sumbernya. */
+  viralityCheck: CekViral[];
 };
 
 export type GroupMeta = {
   model: string;
-  source: "gemini" | "heuristik";
+  source: "gemini" | "heuristik" | "json";
   tokensIn: number;
   tokensOut: number;
   calls: number;

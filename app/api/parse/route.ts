@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { panggilGemini, GeminiHabis } from "@/lib/gemini";
-import { SCHEMA_IDE, SYSTEM_EKSTRAK } from "@/lib/prompt";
+import { SCHEMA_IDE, SYSTEM_EKSTRAK, SYSTEM_STRATEGIST, promptDariKonsep } from "@/lib/prompt";
 import { ekstrakHeuristik } from "@/lib/fallback";
 import { EMPTY_SCORES, hitungTotal, slugify, type Idea } from "@/lib/types";
 
@@ -30,8 +30,11 @@ function rapikan(mentah: any, urutan: number, cadangan: string): Idea {
     caraKerja: teks(mentah?.caraKerja),
     wowMoment: teks(mentah?.wowMoment),
     hook: teks(mentah?.hook),
+    gerakanHook: teks(mentah?.gerakanHook),
     script: Array.isArray(mentah?.script)
-      ? mentah.script.map((s: any) => ({ waktu: teks(s?.waktu), naskah: teks(s?.naskah) })).filter((s: any) => s.naskah)
+      ? mentah.script
+          .map((s: any) => ({ waktu: teks(s?.waktu), naskah: teks(s?.naskah), gerakan: teks(s?.gerakan) }))
+          .filter((s: any) => s.naskah)
       : [],
     recording: Array.isArray(mentah?.recording)
       ? mentah.recording
@@ -44,38 +47,53 @@ function rapikan(mentah: any, urutan: number, cadangan: string): Idea {
     scores,
     totalScore: Math.round(total * 10) / 10,
     catatanProduksi: teks(mentah?.catatanProduksi) || cadangan,
+    viralityCheck: [],
   };
 }
 
 export async function POST(req: Request) {
-  let body: { blok?: string; urutan?: number };
+  let body: { blok?: string; urutan?: number; konsep?: Record<string, unknown> };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Body bukan JSON yang valid." }, { status: 400 });
   }
 
-  const blok = (body.blok ?? "").trim();
   const urutan = Number(body.urutan) || 1;
-  if (!blok) return NextResponse.json({ error: "Teks ide kosong." }, { status: 400 });
+  const konsep = body.konsep;
+  const blok = (body.blok ?? "").trim();
+
+  // Dua mode: manual (ekstrak dari teks yang dipaste) dan otomatis (kembangkan dari konsep).
+  const otomatis = Boolean(konsep && typeof konsep === "object");
+  if (!otomatis && !blok) return NextResponse.json({ error: "Teks ide kosong." }, { status: 400 });
 
   try {
     const hasil = await panggilGemini({
-      systemInstruction: SYSTEM_EKSTRAK,
-      prompt: `Ini catatan mentah satu ide konten. Ubah jadi JSON terstruktur sesuai skema.\n\n---\n${blok.slice(0, 20000)}\n---`,
+      systemInstruction: otomatis
+        ? `${SYSTEM_STRATEGIST}\n\n${SYSTEM_EKSTRAK}`
+        : SYSTEM_EKSTRAK,
+      prompt: otomatis
+        ? promptDariKonsep(konsep!)
+        : `Ini catatan mentah satu ide konten. Ubah jadi JSON terstruktur sesuai skema.\n\n---\n${blok.slice(0, 20000)}\n---`,
       schema: SCHEMA_IDE as unknown as Record<string, unknown>,
       maxOutputTokens: 8192,
+      temperature: otomatis ? 0.7 : 0.35,
     });
 
     return NextResponse.json({
       ide: rapikan(hasil.data, urutan, ""),
       model: hasil.model,
       source: "gemini",
+      mode: otomatis ? "otomatis" : "manual",
       tokensIn: hasil.tokensIn,
       tokensOut: hasil.tokensOut,
     });
   } catch (e) {
     const pesan = e instanceof GeminiHabis ? e.message : (e as Error).message;
+    // Mode otomatis tidak punya teks sumber, jadi tidak ada yang bisa diparsing lokal.
+    if (otomatis) {
+      return NextResponse.json({ error: `Gemini tidak bisa dipakai. ${pesan}` }, { status: 503 });
+    }
     // Cadangan tanpa API supaya pekerjaan tidak berhenti total saat kuota habis.
     const ide = ekstrakHeuristik(blok, urutan);
     return NextResponse.json({

@@ -53,8 +53,13 @@ Lalu set environment variable di dashboard Vercel (Settings -> Environment Varia
 | Nama | Wajib | Contoh |
 |---|---|---|
 | `GEMINI_API_KEY` | ya | `AQ.Ab8...` |
+| `ADMIN_USER` | ya | `admin` |
+| `ADMIN_PASSWORD` | ya | password pilihanmu |
+| `AUTH_SECRET` | ya | hasil `openssl rand -base64 32` |
 | `GEMINI_MODEL` | tidak | `gemini-3.6-flash` |
 | `GEMINI_FALLBACKS` | tidak | `gemini-3.5-flash,gemini-2.5-flash,gemini-2.5-flash-lite` |
+
+Kalau `AUTH_SECRET` diganti, semua sesi yang sedang berjalan otomatis gugur dan harus login ulang.
 
 Tidak ada database, tidak ada penulisan file di server, tidak ada dependensi eksternal lain,
 jadi aplikasi ini jalan apa adanya di Vercel (termasuk paket Hobby).
@@ -78,15 +83,33 @@ struktur folder yang sebenarnya di komputer:
 Konsekuensinya: data tidak otomatis ikut pindah antar browser atau perangkat. Kalau nanti butuh
 itu, tinggal ganti `lib/store.ts` dengan Vercel KV atau Postgres tanpa mengubah bagian lain.
 
+## Login
+
+Seluruh halaman dan seluruh endpoint API dikunci oleh `middleware.ts`. Pengunjung yang belum
+masuk dialihkan ke `/login`, sedangkan panggilan API dijawab `401`. Ini penting karena
+`/api/parse` memakai kuota Gemini milikmu, jadi endpoint itu tidak boleh terbuka untuk umum.
+
+- Kredensial dibaca dari `ADMIN_USER` dan `ADMIN_PASSWORD`, tidak ada yang tertanam di kode.
+- Setelah berhasil masuk, sesi disimpan sebagai cookie `HttpOnly` yang ditandatangani HMAC-SHA256
+  dan berlaku **30 hari**, jadi tidak ditanya password lagi tiap buka.
+- Cookie `HttpOnly` berarti tidak bisa dibaca JavaScript, dan tanda tangan HMAC membuatnya tidak
+  bisa dipalsukan tanpa `AUTH_SECRET`.
+- Username dan password dibandingkan dengan perbandingan waktu tetap, plus jeda 400ms tiap
+  percobaan gagal.
+- Tombol **Keluar** ada di pojok kanan atas.
+
 ## Struktur
 
 ```
 app/
+├── login/page.tsx              gerbang masuk
 ├── page.tsx                    input + daftar folder
 ├── g/[groupId]/page.tsx        isi satu folder tanggal
 ├── g/[groupId]/[ideaId]/page.tsx   satu halaman ide
 └── api/parse/route.ts          ekstraksi satu ide via Gemini
+middleware.ts       kunci semua halaman & API kecuali /login
 lib/
+├── auth.ts         cookie sesi bertanda tangan HMAC
 ├── split.ts        pisah paste jadi beberapa ide (lokal, tanpa API)
 ├── gemini.ts       rantai model, cooldown 429, backoff 5xx
 ├── prompt.ts       system instruction + schema JSON
